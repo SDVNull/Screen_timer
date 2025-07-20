@@ -10,11 +10,39 @@ WORK_TIME = 50 * 60  # 50 минут в секундах
 BREAK_TIME = 10 * 60  # 10 минут в секундах
 
 
-def create_icon():
-    """Создает изображение для значка в трее"""
+def create_clock_icon():
+    """Создает изображение часов для значка в трее"""
+    # Создаем белый фон
     image = Image.new('RGB', (64, 64), 'white')
-    dc = ImageDraw.Draw(image)
-    dc.ellipse((10, 10, 54, 54), fill='blue')
+    draw = ImageDraw.Draw(image)
+    
+    # Центральные координаты
+    center = (32, 32)
+    radius = 25
+    
+    # Рисуем циферблат
+    draw.ellipse(
+        [center[0]-radius, center[1]-radius, 
+         center[0]+radius, center[1]+radius],
+        outline='black',
+        width=2
+    )
+    
+    # Рисуем часовые метки
+    for hour in range(12):
+        angle = 2 * 3.1416 * hour / 12
+        
+        # Координаты внешней точки
+        x1 = center[0] + (radius - 5) * math.cos(angle)
+        y1 = center[1] - (radius - 5) * math.sin(angle)
+        
+        # Координаты внутренней точки
+        x2 = center[0] + (radius - 15) * math.cos(angle)
+        y2 = center[1] - (radius - 15) * math.sin(angle)
+        
+        # Рисуем линию
+        draw.line([x1, y1, x2, y2], fill='black', width=2)
+    
     return image
 
 
@@ -49,15 +77,16 @@ def on_exit(icon, item):
 
 def run_tray_app():
     """Запуск приложения в трее"""
-    image = create_icon()
+    image = create_clock_icon()
     menu = pystray.Menu(
         pystray.MenuItem("Выход", on_exit)
     )
-    icon = pystray.Icon("50 min Timer ", image, "50 минутный Таймер", menu)
+    icon = pystray.Icon("50 min Timer", image, "50 минутный Таймер", menu)
     icon.run()
 
 
 if __name__ == "__main__":
+    import math  # Добавлен импорт для математических операций
     # Запуск таймера в отдельном потоке
     thread = threading.Thread(target=work_cycle, args=(None,), daemon=True)
     thread.start()
